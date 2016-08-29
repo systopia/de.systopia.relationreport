@@ -15,7 +15,13 @@
 
 class CRM_Relationreport_Form_Report_RelationshipOverview extends CRM_Report_Form {
 
-  protected $_customGroupExtends = array('Contacts');
+  protected $_customGroupExtends = array(
+    'Contact',
+    'Individual',
+    'Household',
+    'Organization',
+  );
+
   protected $_customGroupGroupBy = FALSE; 
 
   function __construct() {
