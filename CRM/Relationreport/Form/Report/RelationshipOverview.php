@@ -48,6 +48,10 @@ class CRM_Relationreport_Form_Report_RelationshipOverview extends CRM_Report_For
             'no_display' => TRUE,
             'required' => TRUE,
           ),
+          'tags' => array(
+            'title' => ts('Tags', array('domain' => 'de.systopia.relationreport')),
+            'no_repeat' => TRUE,
+          ),
           // TODO: additional fields?
           // 'first_name' => array(
           //   'title' => ts('First Name', array('domain' => 'de.systopia.relationreport')),
@@ -88,6 +92,12 @@ class CRM_Relationreport_Form_Report_RelationshipOverview extends CRM_Report_For
               $this->_columnHeaders["{$tableName}_{$fieldName}"]['title'] = $field['title'];
               $this->_columnHeaders["{$tableName}_{$fieldName}"]['type']  = CRM_Utils_Array::value('type', $field);
 
+            } elseif ('tags' == $fieldName) {
+              // tags should be included as an aggregated field as well
+              $select[] = " GROUP_CONCAT(DISTINCT(tag.name) SEPARATOR ', ') AS {$tableName}_{$fieldName} ";
+              $this->_columnHeaders["{$tableName}_{$fieldName}"]['title'] = $field['title'];
+              $this->_columnHeaders["{$tableName}_{$fieldName}"]['type']  = CRM_Utils_Array::value('type', $field);
+
             } else {
               // default field            
               $select[] = "{$field['dbAlias']} as {$tableName}_{$fieldName}";
@@ -122,6 +132,21 @@ class CRM_Relationreport_Form_Report_RelationshipOverview extends CRM_Report_For
               $contact_table = $fieldName . '_contact_table'; 
               $this->_from .= " LEFT JOIN civicrm_contact {$contact_table} ON {$relationship_table}.contact_id_{$relationship_target} = {$contact_table}.id ";
             }
+          }
+        }
+      }
+    }
+
+
+    // JOIN tags
+    foreach ($this->_columns as $tableName => $table) {
+      if (array_key_exists('fields', $table)) {
+        foreach ($table['fields'] as $fieldName => $field) {
+          if ($fieldName == 'tags') {
+            $contact_table = $fieldName . '_contact_table'; 
+            $this->_from .= " LEFT JOIN civicrm_entity_tag et  ON et.entity_id = {$this->_aliases['civicrm_contact']}.id AND et.entity_table = 'civicrm_contact' ";
+            $this->_from .= " LEFT JOIN civicrm_tag        tag ON et.tag_id    = tag.id ";
+            break 2;
           }
         }
       }
