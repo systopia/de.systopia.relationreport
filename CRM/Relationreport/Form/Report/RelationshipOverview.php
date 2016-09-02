@@ -93,8 +93,8 @@ class CRM_Relationreport_Form_Report_RelationshipOverview extends CRM_Report_For
               $relationship_direction = substr($fieldName, -1, 1);
               $relationship_table     = $fieldName . '_table'; 
               $contact_table          = $fieldName . '_contact_table'; 
-              // $select[] = " GROUP_CONCAT({$relationship_table}.contact_id_{$relationship_direction} SEPARATOR ',') AS {$tableName}_{$fieldName} ";
-              $select[] = " GROUP_CONCAT({$contact_table}.display_name SEPARATOR ', ') AS {$tableName}_{$fieldName} ";
+              // $select[] = " GROUP_CONCAT(DISTINCT({$relationship_table}.contact_id_{$relationship_direction}) SEPARATOR ',') AS {$tableName}_{$fieldName} ";
+              $select[] = " GROUP_CONCAT(DISTINCT({$contact_table}.display_name) SEPARATOR ', ') AS {$tableName}_{$fieldName} ";
               $this->_columnHeaders["{$tableName}_{$fieldName}"]['title'] = $field['title'];
               $this->_columnHeaders["{$tableName}_{$fieldName}"]['type']  = CRM_Utils_Array::value('type', $field);
 
