@@ -72,6 +72,7 @@ class CRM_Relationreport_Form_Report_RelationshipOverview extends CRM_Report_For
           //   'no_repeat' => TRUE,
           // ),
         ) + $relationshipTypes,
+        'filters' => $this->getBasicContactFilters(),
       ),
     );
 
