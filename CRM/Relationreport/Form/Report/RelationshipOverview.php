@@ -235,6 +235,20 @@ class CRM_Relationreport_Form_Report_RelationshipOverview extends CRM_Report_For
 
 
   function alterDisplay(&$rows) {
-    // nothing to to atm
+    foreach ($rows as $rowNum => $row) {
+      // convert display name to links
+      if (array_key_exists('civicrm_contact_sort_name', $row) &&
+        !empty($rows[$rowNum]['civicrm_contact_sort_name']) &&
+        array_key_exists('civicrm_contact_id', $row)
+      ) {
+        $url = CRM_Utils_System::url('civicrm/contact/view',
+          'reset=1&cid=' . $row['civicrm_contact_id'],
+          $this->_absoluteUrl
+        );
+        $rows[$rowNum]['civicrm_contact_sort_name_link'] = $url;
+        $rows[$rowNum]['civicrm_contact_sort_name_hover'] = ts('View Contact Summary for this Contact.');
+      }
+    }
   }
+
 }
