@@ -22,7 +22,9 @@ class CRM_Relationreport_Form_Report_RelationshipOverview extends CRM_Report_For
     'Organization',
   );
 
-  protected $_customGroupGroupBy = FALSE; 
+  protected $_customGroupGroupBy = FALSE;
+
+  protected $groupConcatTested = TRUE;
 
   function __construct() {
     // create list of relationship types
@@ -34,14 +36,19 @@ class CRM_Relationreport_Form_Report_RelationshipOverview extends CRM_Report_For
     $query = civicrm_api3('RelationshipType', 'get', $relationshipTypeParams);
     foreach ($query['values'] as $relationshipType) {
       $key = "relationship_{$relationshipType['id']}_";
-      $relationshipTypes[$key.'a_b'] = array(
+      $relationshipTypeFields[$key.'a_b'] = array(
         'title'   => $relationshipType['label_a_b'],
         'type'    => CRM_Utils_Type::T_STRING,
       );
-
-      $relationshipTypes[$key.'b_a'] = array(
+      $relationshipOrderBys[$key.'a_b'] = array(
+        'title'   => $relationshipType['label_a_b'],
+      );
+      $relationshipTypeFields[$key.'b_a'] = array(
         'title'   => $relationshipType['label_b_a'],
         'type'    => CRM_Utils_Type::T_STRING,
+      );
+      $relationshipOrderBys[$key.'b_a'] = array(
+        'title'   => $relationshipType['label_b_a'],
       );
     }
 
@@ -71,7 +78,16 @@ class CRM_Relationreport_Form_Report_RelationshipOverview extends CRM_Report_For
           //   'title' => ts('Last Name', array('domain' => 'de.systopia.relationreport')),
           //   'no_repeat' => TRUE,
           // ),
-        ) + $relationshipTypes,
+        ) + $relationshipTypeFields,
+        'filters' => $this->getBasicContactFilters(),
+        'order_bys' => array(
+          'sort_name' => array(
+            'title' => ts('Contact Name'),
+            'default' => '1',
+            'default_weight' => '1',
+            'default_order' => 'ASC',
+          ),
+        ) + $relationshipOrderBys,
       ),
     );
 
@@ -98,10 +114,13 @@ class CRM_Relationreport_Form_Report_RelationshipOverview extends CRM_Report_For
               $relationship_table     = $fieldName . '_table'; 
               $contact_table          = $fieldName . '_contact_table'; 
               // $select[] = " GROUP_CONCAT(DISTINCT({$relationship_table}.contact_id_{$relationship_direction}) SEPARATOR ',') AS {$tableName}_{$fieldName} ";
-              $select[] = " GROUP_CONCAT(DISTINCT({$contact_table}.display_name) SEPARATOR ', ') AS {$tableName}_{$fieldName} ";
+              $select[] = " GROUP_CONCAT(DISTINCT {$contact_table}.display_name ORDER BY {$contact_table}.display_name ASC SEPARATOR ', ') AS {$tableName}_{$fieldName} ";
+              $select[] = " GROUP_CONCAT(DISTINCT {$contact_table}.id ORDER BY {$contact_table}.display_name ASC SEPARATOR ', ') AS {$tableName}_{$fieldName}_id ";
               $this->_columnHeaders["{$tableName}_{$fieldName}"]['title'] = $field['title'];
               $this->_columnHeaders["{$tableName}_{$fieldName}"]['type']  = CRM_Utils_Array::value('type', $field);
-
+              $this->_columnHeaders["{$tableName}_{$fieldName}_id"]['title'] = $field['title'] . '_id';
+              $this->_columnHeaders["{$tableName}_{$fieldName}_id"]['type']  = CRM_Utils_Type::T_INT;
+              $this->_columnHeaders["{$tableName}_{$fieldName}_id"]['no_display']  = TRUE;
             } elseif ('tags' == $fieldName) {
               // tags should be included as an aggregated field as well
               $select[] = " GROUP_CONCAT(DISTINCT(tag.name) SEPARATOR ', ') AS {$tableName}_{$fieldName} ";
@@ -216,7 +235,8 @@ class CRM_Relationreport_Form_Report_RelationshipOverview extends CRM_Report_For
   }
 
   function orderBy() {
-    $this->_orderBy = " ORDER BY {$this->_aliases['civicrm_contact']}.sort_name, {$this->_aliases['civicrm_contact']}.id";
+    parent::orderBy();
+    //$this->_orderBy = " ORDER BY {$this->_aliases['civicrm_contact']}.sort_name, {$this->_aliases['civicrm_contact']}.id";
   }
 
 
@@ -240,17 +260,28 @@ class CRM_Relationreport_Form_Report_RelationshipOverview extends CRM_Report_For
 
   function alterDisplay(&$rows) {
     foreach ($rows as $rowNum => $row) {
-      // convert display name to links
-      if (array_key_exists('civicrm_contact_sort_name', $row) &&
-        !empty($rows[$rowNum]['civicrm_contact_sort_name']) &&
-        array_key_exists('civicrm_contact_id', $row)
-      ) {
-        $url = CRM_Utils_System::url('civicrm/contact/view',
-          'reset=1&cid=' . $row['civicrm_contact_id'],
-          $this->_absoluteUrl
-        );
-        $rows[$rowNum]['civicrm_contact_sort_name_link'] = $url;
-        $rows[$rowNum]['civicrm_contact_sort_name_hover'] = ts('View Contact Summary for this Contact.');
+      foreach ($row as $key => $value) {
+        // convert display name to links
+        if ($key == 'civicrm_contact_sort_name' && !empty($value)) {
+          if (array_key_exists('civicrm_contact_id', $row)) {
+            $url = CRM_Utils_System::url('civicrm/contact/view',
+              'reset=1&cid=' . $row['civicrm_contact_id'],
+              $this->_absoluteUrl
+            );
+            $rows[$rowNum]['civicrm_contact_sort_name_link'] = $url;
+            $rows[$rowNum]['civicrm_contact_sort_name_hover'] = ts('View Contact Summary for this Contact.');
+          }
+        }
+        elseif (('civicrm_contact_relationship_' == substr($key, 0, 29)) && '_id' != substr($key, -3)) {
+          if (array_key_exists("{$key}_id", $row)) {
+            $url = CRM_Utils_System::url('civicrm/contact/view',
+              'reset=1&cid=' . $row["{$key}_id"],
+              $this->_absoluteUrl
+            );
+            $rows[$rowNum]["{$key}_link"] = $url;
+            $rows[$rowNum]["{$key}_hover"] = ts('View Contact Summary for this Contact.');
+          }
+        }
       }
     }
   }
