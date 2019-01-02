@@ -27,7 +27,11 @@ class CRM_Relationreport_Form_Report_RelationshipOverview extends CRM_Report_For
   function __construct() {
     // create list of relationship types
     $relationshipTypes = array();
-    $query = civicrm_api3('RelationshipType', 'get', array('option.limit' => 9999));
+    $relationshipTypeParams = array(
+      'is_active' => 1,
+      'options' => ['limit' => 0, 'sort' => "label_a_b ASC"],
+    );
+    $query = civicrm_api3('RelationshipType', 'get', $relationshipTypeParams);
     foreach ($query['values'] as $relationshipType) {
       $key = "relationship_{$relationshipType['id']}_";
       $relationshipTypes[$key.'a_b'] = array(
