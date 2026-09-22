@@ -15,12 +15,12 @@
 
 class CRM_Relationreport_Form_Report_RelationshipOverview extends CRM_Report_Form {
 
-  protected $_customGroupExtends = array(
+  protected $_customGroupExtends = [
     'Contact',
     'Individual',
     'Household',
     'Organization',
-  );
+  ];
 
   protected $_customGroupGroupBy = FALSE;
 
@@ -28,47 +28,47 @@ class CRM_Relationreport_Form_Report_RelationshipOverview extends CRM_Report_For
 
   function __construct() {
     // create list of relationship types
-    $relationshipTypes = array();
-    $relationshipTypeParams = array(
+    $relationshipTypes = [];
+    $relationshipTypeParams = [
       'is_active' => 1,
       'options' => ['limit' => 0, 'sort' => "label_a_b ASC"],
-    );
+    ];
     $query = civicrm_api3('RelationshipType', 'get', $relationshipTypeParams);
     foreach ($query['values'] as $relationshipType) {
       $key = "relationship_{$relationshipType['id']}_";
-      $relationshipTypeFields[$key.'a_b'] = array(
+      $relationshipTypeFields[$key.'a_b'] = [
         'title'   => $relationshipType['label_a_b'],
         'type'    => CRM_Utils_Type::T_STRING,
-      );
-      $relationshipOrderBys[$key.'a_b'] = array(
+      ];
+      $relationshipOrderBys[$key.'a_b'] = [
         'title'   => $relationshipType['label_a_b'],
-      );
-      $relationshipTypeFields[$key.'b_a'] = array(
+      ];
+      $relationshipTypeFields[$key.'b_a'] = [
         'title'   => $relationshipType['label_b_a'],
         'type'    => CRM_Utils_Type::T_STRING,
-      );
-      $relationshipOrderBys[$key.'b_a'] = array(
+      ];
+      $relationshipOrderBys[$key.'b_a'] = [
         'title'   => $relationshipType['label_b_a'],
-      );
+      ];
     }
 
-    $this->_columns = array(
-      'civicrm_contact' => array(
+    $this->_columns = [
+      'civicrm_contact' => [
         'dao' => 'CRM_Contact_DAO_Contact',
-        'fields' => array(
-          'sort_name' => array(
-            'title' => ts('Contact Name', array('domain' => 'de.systopia.relationreport')),
+        'fields' => [
+          'sort_name' => [
+            'title' => ts('Contact Name', ['domain' => 'de.systopia.relationreport']),
             'required'  => TRUE,
             'default'   => TRUE,
-          ),
-          'id' => array(
+          ],
+          'id' => [
             'no_display' => TRUE,
             'required' => TRUE,
-          ),
-          'tags' => array(
-            'title' => ts('Tags', array('domain' => 'de.systopia.relationreport')),
+          ],
+          'tags' => [
+            'title' => ts('Tags', ['domain' => 'de.systopia.relationreport']),
             'no_repeat' => TRUE,
-          ),
+          ],
           // TODO: additional fields?
           // 'first_name' => array(
           //   'title' => ts('First Name', array('domain' => 'de.systopia.relationreport')),
@@ -78,18 +78,18 @@ class CRM_Relationreport_Form_Report_RelationshipOverview extends CRM_Report_For
           //   'title' => ts('Last Name', array('domain' => 'de.systopia.relationreport')),
           //   'no_repeat' => TRUE,
           // ),
-        ) + $relationshipTypeFields,
+        ] + $relationshipTypeFields,
         'filters' => $this->getBasicContactFilters(),
-        'order_bys' => array(
-          'sort_name' => array(
+        'order_bys' => [
+          'sort_name' => [
             'title' => ts('Contact Name'),
             'default' => '1',
             'default_weight' => '1',
             'default_order' => 'ASC',
-          ),
-        ) + $relationshipOrderBys,
-      ),
-    );
+          ],
+        ] + $relationshipOrderBys,
+      ],
+    ];
 
     $this->_groupFilter = TRUE;
     $this->_tagFilter = TRUE;
@@ -97,12 +97,12 @@ class CRM_Relationreport_Form_Report_RelationshipOverview extends CRM_Report_For
   }
 
   function preProcess() {
-    $this->assign('reportTitle', ts('Relationship Overview Report', array('domain' => 'de.systopia.relationreport')));
+    $this->assign('reportTitle', ts('Relationship Overview Report', ['domain' => 'de.systopia.relationreport']));
     parent::preProcess();
   }
 
   function select() {
-    $select = $this->_columnHeaders = array();
+    $select = $this->_columnHeaders = [];
 
     foreach ($this->_columns as $tableName => $table) {
       if (array_key_exists('fields', $table)) {
@@ -185,7 +185,7 @@ class CRM_Relationreport_Form_Report_RelationshipOverview extends CRM_Report_For
   }
 
   function where() {
-    $clauses = array();
+    $clauses = [];
     foreach ($this->_columns as $tableName => $table) {
       if (array_key_exists('filters', $table)) {
         foreach ($table['filters'] as $fieldName => $field) {
@@ -249,7 +249,7 @@ class CRM_Relationreport_Form_Report_RelationshipOverview extends CRM_Report_For
     $sql = $this->buildQuery(TRUE);
     // error_log($sql);
 
-    $rows = array();
+    $rows = [];
     $this->buildRows($sql, $rows);
 
     $this->formatDisplay($rows);
