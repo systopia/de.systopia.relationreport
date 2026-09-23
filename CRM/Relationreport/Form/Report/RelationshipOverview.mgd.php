@@ -13,19 +13,19 @@
 | written permission from the original author(s).        |
 +--------------------------------------------------------*/
 
-return array (
+return [
   0 => 
-    array (
+    [
       'name' => 'CRM_Relationreport_Form_Report_RelationshipOverview',
       'entity' => 'ReportTemplate',
       'params' => 
-      array (
+      [
         'version' => 3,
-        'label' => ts("Relationship Overview", array('domain' => 'de.systopia.relationreport')),
-        'description' => ts("Comprehensive overview a contact's relationships", array('domain' => 'de.systopia.relationreport')),
+        'label' => ts("Relationship Overview", ['domain' => 'de.systopia.relationreport']),
+        'description' => ts("Comprehensive overview a contact's relationships", ['domain' => 'de.systopia.relationreport']),
         'class_name' => 'CRM_Relationreport_Form_Report_RelationshipOverview',
         'report_url' => 'de.systopia.relationreport/relationshipoverview',
         'component' => '',
-      ),
-    ),
-);
+      ],
+    ],
+];
